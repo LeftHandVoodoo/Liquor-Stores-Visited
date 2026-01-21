@@ -22,29 +22,32 @@ const mapContainerStyle = {
   height: '100%',
 };
 
-const mapOptions: google.maps.MapOptions = {
-  disableDefaultUI: false,
-  zoomControl: true,
-  mapTypeControl: true,
-  mapTypeControlOptions: {
-    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-    position: google.maps.ControlPosition.TOP_RIGHT,
-    mapTypeIds: [
-      google.maps.MapTypeId.ROADMAP,
-      google.maps.MapTypeId.SATELLITE,
-      google.maps.MapTypeId.HYBRID,
-    ],
-  },
-  streetViewControl: false,
-  fullscreenControl: true,
-  styles: [
-    {
-      featureType: 'poi',
-      elementType: 'labels',
-      stylers: [{ visibility: 'off' }],
+// Map options must be created after API loads (google.maps not available at module level)
+function getMapOptions(): google.maps.MapOptions {
+  return {
+    disableDefaultUI: false,
+    zoomControl: true,
+    mapTypeControl: true,
+    mapTypeControlOptions: {
+      style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+      position: google.maps.ControlPosition.TOP_RIGHT,
+      mapTypeIds: [
+        google.maps.MapTypeId.ROADMAP,
+        google.maps.MapTypeId.SATELLITE,
+        google.maps.MapTypeId.HYBRID,
+      ],
     },
-  ],
-};
+    streetViewControl: false,
+    fullscreenControl: true,
+    styles: [
+      {
+        featureType: 'poi',
+        elementType: 'labels',
+        stylers: [{ visibility: 'off' }],
+      },
+    ],
+  };
+}
 
 function getPinColor(store: Store): string {
   if (!store.visited) {
@@ -164,7 +167,7 @@ export function Map({ onApiError }: MapProps) {
         mapContainerStyle={mapContainerStyle}
         center={FREDERICK_COUNTY_CENTER}
         zoom={11}
-        options={mapOptions}
+        options={getMapOptions()}
         onLoad={onMapLoad}
       >
         {filteredStores
