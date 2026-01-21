@@ -1,0 +1,462 @@
+// Pre-loaded store data from Liquor Store List.json
+// Coordinates will be geocoded on first load and cached
+
+export interface PreloadedStore {
+  name: string;
+  address: string;
+  phone: string | null;
+  comments: string;
+}
+
+export const preloadedStores: PreloadedStore[] = [
+  {
+    name: "6-10 Gas Mart",
+    address: "1904 Urbana Pike, Clarksburg, MD 20871",
+    phone: null,
+    comments: "Located at the southern county border; primarily a fuel stop."
+  },
+  {
+    name: "A-1 Beer & Wine",
+    address: "34 E. Frederick Street, Walkersville, MD 21793",
+    phone: "(301) 845-1333",
+    comments: "Neighborhood convenience store in Walkersville center."
+  },
+  {
+    name: "A-1 Choice",
+    address: "300 S Jefferson Street, Frederick, MD 21701",
+    phone: null,
+    comments: "High-traffic commuter spot; hosts a Bitcoin ATM."
+  },
+  {
+    name: "A-1 Mart",
+    address: "649 Himes Avenue, Frederick, MD 21703",
+    phone: null,
+    comments: "Residential neighborhood location; houses a USPS Contract Unit."
+  },
+  {
+    name: "Amber Meadows Liquors",
+    address: "183 Thomas Johnson Drive, Unit C, Frederick, MD 21702",
+    phone: "(301) 694-6678",
+    comments: "Serves the medical district north of downtown."
+  },
+  {
+    name: "Anita's Liquors",
+    address: "1408 S Main Street, Mount Airy, MD 21771",
+    phone: "(301) 829-4121",
+    comments: "Key retailer for the Mount Airy/Ridgeville corridor."
+  },
+  {
+    name: "Atomic 97 Beer & Wine",
+    address: "14 N Market Street, Frederick, MD 21701",
+    phone: null,
+    comments: "Downtown specialty shop; focuses on craft beer and events."
+  },
+  {
+    name: "Ballenger Beer & Spirits",
+    address: "5862 Ballenger Creek Pike, Frederick, MD 21703",
+    phone: "(240) 815-6058",
+    comments: "Anchor for the dense Ballenger Creek residential zone."
+  },
+  {
+    name: "Barnes Store",
+    address: "9711 Liberty Road, Frederick, MD 21701",
+    phone: "(301) 898-7773",
+    comments: "Historic 'Barnes Country Store' serving the Libertytown area."
+  },
+  {
+    name: "Beckley's Liquor Store & Motel",
+    address: "7611 A Willow Road, Frederick, MD 21701",
+    phone: null,
+    comments: "Unique hybrid motel/retail model near Route 15."
+  },
+  {
+    name: "Beer Corner",
+    address: "1425 W Patrick St, Frederick, MD 21702",
+    phone: null,
+    comments: "Situated on the Golden Mile; convenience focused."
+  },
+  {
+    name: "Beer, Wine, & Grocery",
+    address: "8301 River Run Road, Frederick, MD 21701",
+    phone: null,
+    comments: "Also known locally as 'Village Mart' in the Worman's Mill area."
+  },
+  {
+    name: "Brown's",
+    address: "908 E Patrick Street, Frederick, MD 21701",
+    phone: "(301) 663-9301",
+    comments: "'Brown's Liquors & Deli' - a long-standing local institution."
+  },
+  {
+    name: "Brunswick Liquors",
+    address: "840 Jefferson Pike, Knoxville, MD 21758",
+    phone: "(301) 401-1600",
+    comments: "Serves the Knoxville/Brunswick traffic corridor."
+  },
+  {
+    name: "Buckeystown Mart",
+    address: "3612 Buckeystown Pike, Adamstown, MD 21710",
+    phone: null,
+    comments: "Critical stop on Route 85 industrial/commuter route."
+  },
+  {
+    name: "Castle Liquors",
+    address: "1312 S Main Street, Suite 8, Mount Airy, MD 21771",
+    phone: "(301) 829-1241",
+    comments: "Major competitor in the Mount Airy market."
+  },
+  {
+    name: "Catoctin Furnace Liquors",
+    address: "4639 Foxville Road, Sabillasville, MD 21780",
+    phone: "(240) 356-1997",
+    comments: "Rural outpost serving the northern mountain communities."
+  },
+  {
+    name: "Corner Store",
+    address: "102 W Potomac Street, Brunswick, MD 21716",
+    phone: "(301) 658-4593",
+    comments: "Downtown Brunswick convenient retail."
+  },
+  {
+    name: "Countryside Liquors",
+    address: "11717 Old National Pike, New Market, MD 21774",
+    phone: "(240) 822-3026",
+    comments: "Located in the New Market commercial center."
+  },
+  {
+    name: "Crestwood Liquors",
+    address: "6930 Crestwood Boulevard, Frederick, MD 21703",
+    phone: "(301) 668-4988",
+    comments: "Serves the Crestwood and Ballenger Creek neighborhoods."
+  },
+  {
+    name: "Crown Wine & Spirits",
+    address: "1305 W 7th Street, Unit 27, Frederick, MD 21701",
+    phone: null,
+    comments: "Located in Clemson Corner; formerly/aka '3 Star Liquors'."
+  },
+  {
+    name: "D&B Liquors",
+    address: "8415 Unit K Woodsboro Pike, Walkersville, MD 21793",
+    phone: "(301) 845-6330",
+    comments: "Key retailer in the Walkersville/Woodsboro corridor."
+  },
+  {
+    name: "Dash In",
+    address: "3359 Urbana Pike, Frederick, MD 21704",
+    phone: "(240) 436-1960",
+    comments: "High-volume gas/convenience in Urbana."
+  },
+  {
+    name: "DJ Liquors",
+    address: "1313 W Patrick Street, Frederick, MD 21702",
+    phone: "(301) 378-8620",
+    comments: "Golden Mile location specializing in craft beer."
+  },
+  {
+    name: "East Street Liberty",
+    address: "1301 N East Street, Frederick, MD 21701",
+    phone: "(301) 695-0715",
+    comments: "Liberty Gas Station with retail alcohol license."
+  },
+  {
+    name: "Eastside Liquors",
+    address: "507-509 N East Street, Unit 115, Frederick, MD 21701",
+    phone: "(301) 663-3733",
+    comments: "Urban location near the fairgrounds and Shab Row."
+  },
+  {
+    name: "Emmitsburg Liquors",
+    address: "101 Silo Hill Road, Ste 2, Emmitsburg, MD 21727",
+    phone: "(301) 447-6660",
+    comments: "Primary liquor retailer for Emmitsburg."
+  },
+  {
+    name: "Emmitsburg Mini Mart",
+    address: "16603 South Seton Ave, Emmitsburg, MD 21727",
+    phone: null,
+    comments: "Convenience-focused outlet in Emmitsburg."
+  },
+  {
+    name: "Evergreen Liquors",
+    address: "5809 B Buckeystown Pike, Frederick, MD 21704",
+    phone: "(301) 663-0121",
+    comments: "Serves the busy Buckeystown Pike commercial zone."
+  },
+  {
+    name: "FDK Groceries",
+    address: "430 A E Patrick St, Frederick, MD 21701",
+    phone: "(240) 575-6542",
+    comments: "Co-located with U-Haul rental services."
+  },
+  {
+    name: "Festival Major Liquors",
+    address: "446 Prospect Boulevard, Frederick, MD 21701",
+    phone: "(301) 698-0980",
+    comments: "Located in Festival at Frederick shopping center."
+  },
+  {
+    name: "Franklin Liquors",
+    address: "2913 Urbana Pike, Ijamsville, MD 21754",
+    phone: "(301) 363-8786",
+    comments: "Serves the Urbana/Ijamsville transition zone."
+  },
+  {
+    name: "Frederick Beer, Wine & Ice",
+    address: "300 North East Street, Frederick, MD 21701",
+    phone: "(301) 900-4898",
+    comments: "Also known as 'The Ice House'; industrial aesthetic."
+  },
+  {
+    name: "Frederick Cheese Shop",
+    address: "23 East Patrick Street, Frederick, MD 21701",
+    phone: "(301) 200-3082",
+    comments: "Gourmet shop integrating wine sales with artisan cheese."
+  },
+  {
+    name: "Frederick Discount Liquors",
+    address: "531 N Bentz Street, Frederick, MD 21701",
+    phone: null,
+    comments: "Residential corner location on Bentz Street."
+  },
+  {
+    name: "Frederick Getgo",
+    address: "1000 W Patrick Street B, Frederick, MD 21703",
+    phone: "(301) 694-5331",
+    comments: "Convenience model on the Golden Mile."
+  },
+  {
+    name: "Frederick Wine House",
+    address: "30 Monocacy Blvd, Frederick, MD 21701",
+    phone: "(301) 900-9463",
+    comments: "Large selection specialist near Market Square."
+  },
+  {
+    name: "Gateway Candyland & Liquors",
+    address: "14802 N Franklinville Road, B, Thurmont, MD 21788",
+    phone: "(301) 271-2322",
+    comments: "Tourist destination combining candy/fudge with liquor retail."
+  },
+  {
+    name: "Golden Mile Tiger Mart",
+    address: "1380 W Patrick Street, Frederick, MD 21702",
+    phone: null,
+    comments: "Exxon station on the Golden Mile."
+  },
+  {
+    name: "Green Valley Convenient Store",
+    address: "3737 Lawson Road, Ijamsville, MD 21754",
+    phone: null,
+    comments: "Serves the Green Valley/Monrovia rural area."
+  },
+  {
+    name: "Green Valley Wine and Spirits",
+    address: "11801 Fingerboard Road, Suite 9 & 1, Monrovia, MD 21770",
+    phone: null,
+    comments: "Located in the Green Valley Shopping Center."
+  },
+  {
+    name: "Heritage Spirits of Middletown",
+    address: "4334 Old National Pike, Middletown, MD 21769",
+    phone: "(240) 490-5915",
+    comments: "Main Street retailer for Middletown residents."
+  },
+  {
+    name: "Hillcrest Wine and Spirits",
+    address: "1090 W Patrick Street, Frederick, MD 21703",
+    phone: "(301) 663-6064",
+    comments: "Major anchor on the Golden Mile; extensive inventory."
+  },
+  {
+    name: "Hilltop Convenience & Liquor",
+    address: "10519 Old National Pike, New Market, MD 21774",
+    phone: "(301) 865-3354",
+    comments: "Serves New Market and eastern commuter traffic."
+  },
+  {
+    name: "Hi-Way Liquors",
+    address: "6915 Baltimore National Pike, Frederick, MD 21702",
+    phone: "(301) 473-4222",
+    comments: "Situated on the western edge of the Golden Mile (Route 40)."
+  },
+  {
+    name: "International Market",
+    address: "1450 W Patrick Street Suite 8-13, Frederick, MD 21702",
+    phone: "(301) 662-4104",
+    comments: "'Ebenezer International Market'; specializes in global goods."
+  },
+  {
+    name: "JB Spirits and Eats",
+    address: "308 Main St, Myersville, MD 21773",
+    phone: "(301) 293-2722",
+    comments: "Only liquor retailer in Myersville; combines food service."
+  },
+  {
+    name: "Jefferson BP",
+    address: "4607 Lander Rd., Jefferson, MD 21755",
+    phone: "(240) 651-3553",
+    comments: "Gas station servicing the Jefferson/Lander Road intersection."
+  },
+  {
+    name: "Jefferson Market",
+    address: "3703 Jefferson Pike, Jefferson, MD 21755",
+    phone: "(301) 473-5784",
+    comments: "Central convenience store for Jefferson township."
+  },
+  {
+    name: "Jefferson Street Exxon",
+    address: "400 South Jefferson Street, Frederick, MD 21701",
+    phone: "(301) 668-3880",
+    comments: "High-traffic Exxon near I-70/US-15 ramps."
+  },
+  {
+    name: "Jerry's Liquors",
+    address: "8 Petersville Road, Brunswick, MD 21716",
+    phone: "(301) 834-7133",
+    comments: "Located near the Brunswick traffic circle/bridge."
+  },
+  {
+    name: "Kemptown Liquor Store",
+    address: "12516 Fingerboard Road, Monrovia, MD 21770",
+    phone: null,
+    comments: "Rural retailer in Kemptown (eastern county)."
+  },
+  {
+    name: "Lakefront Fine Wine & Spirits",
+    address: "2401 Whittier Dr. Suite F, Frederick, MD 21702",
+    phone: "(240) 575-9441",
+    comments: "Boutique retailer in the Whittier neighborhood."
+  },
+  {
+    name: "New Market Spirits",
+    address: "8927 Fingerboard Rd. Unit F&G, Frederick, MD 21704",
+    phone: null,
+    comments: "Serves the southern New Market/Urbana corridor."
+  },
+  {
+    name: "Paul's Pit Stop",
+    address: "150 South Seton Avenue, Emmitsburg, MD 21727",
+    phone: "(301) 447-6262",
+    comments: "Convenience/Liquor store in Emmitsburg."
+  },
+  {
+    name: "Penny Mart",
+    address: "119 South Market Street, A, Frederick, MD 21701",
+    phone: "(301) 694-7771",
+    comments: "Downtown convenience store; co-located with Manny Mart."
+  },
+  {
+    name: "Plus Mart",
+    address: "1202 East Patrick Street, Frederick, MD 21701",
+    phone: "(301) 622-2202",
+    comments: "Located on East Patrick Street near the fairgrounds."
+  },
+  {
+    name: "Riverside Liquors",
+    address: "1299 Riverbend Way, Frederick, MD 21701",
+    phone: "(301) 624-1742",
+    comments: "Serves the dense residential areas along Monocacy Blvd/Route 26."
+  },
+  {
+    name: "RJ Beer and Convenience",
+    address: "882 W Main Street, Emmitsburg, MD 21727",
+    phone: "(301) 447-4111",
+    comments: "Located on the western edge of Emmitsburg."
+  },
+  {
+    name: "Rosehill Service Center",
+    address: "1561 Opossumtown Pike, Frederick, MD 21702",
+    phone: "(301) 663-8828",
+    comments: "Auto service center with attached retail license."
+  },
+  {
+    name: "Town Liquors",
+    address: "12439 Creagerstown Road, Thurmont, MD 21788",
+    phone: null,
+    comments: "Located just off Route 15 in Thurmont."
+  },
+  {
+    name: "Towne 'N' Country Liquors",
+    address: "34 Water Street, Thurmont, MD 21788",
+    phone: null,
+    comments: "Historic location in downtown Thurmont."
+  },
+  {
+    name: "Tri-State Liquors",
+    address: "96 Souder Road, Brunswick, MD 21716",
+    phone: "(301) 834-4448",
+    comments: "Strategic location catering to MD, VA, and WV customers."
+  },
+  {
+    name: "Trout Liquors",
+    address: "5108 Old National Pike, Frederick, MD 21702",
+    phone: "(301) 371-4400",
+    comments: "Landmark store on the historic National Pike."
+  },
+  {
+    name: "Trout's Market",
+    address: "3 N Main Street, Woodsboro, MD 21798",
+    phone: "(301) 845-8674",
+    comments: "Grocery and liquor retailer for Woodsboro."
+  },
+  {
+    name: "Urbana Fuel & Treats",
+    address: "8816 Fingerboard Road, Frederick, MD 21704",
+    phone: "(301) 694-8288",
+    comments: "Exxon station in the heart of Urbana."
+  },
+  {
+    name: "Urbana Liquors",
+    address: "3521 John Simmons St Suite C-101, Frederick, MD 21704",
+    phone: "(301) 874-1148",
+    comments: "Modern retail space in Urbana's commercial district."
+  },
+  {
+    name: "Walkersville Wine & Spirits",
+    address: "128 Walkers Village Way, Units 128, Walkersville, MD 21793",
+    phone: "(301) 845-2222",
+    comments: "Located in the Safeway shopping center complex."
+  },
+  {
+    name: "Washingtonian Express",
+    address: "1395 W. Patrick St., Frederick, MD 21702",
+    phone: null,
+    comments: "Gas station convenience on the Golden Mile."
+  },
+  {
+    name: "Waverley Beer and Wine",
+    address: "45 A Waverley Drive, Suite A, Frederick, MD 21702",
+    phone: "(301) 668-1782",
+    comments: "Neighborhood store off the Golden Mile."
+  },
+  {
+    name: "Westridge Liquors",
+    address: "1045 West Patrick Street, Frederick, MD 21702",
+    phone: "(301) 662-8686",
+    comments: "Major shopping center location (Westridge Square)."
+  },
+  {
+    name: "Willow Tree Liquors",
+    address: "5 Willowdale Drive Suite 8, Frederick, MD 21702",
+    phone: "(301) 631-5055",
+    comments: "Located in the Willowtree Plaza."
+  },
+  {
+    name: "Wine Districts",
+    address: "5213 Presidents Ct, Frederick, MD 21703",
+    phone: "(301) 898-2350",
+    comments: "Large format store near Westview Promenade."
+  },
+  {
+    name: "Woodsboro Liquors",
+    address: "601 S. Main Street, Woodsboro, MD 21798",
+    phone: "(301) 845-8793",
+    comments: "Serves the southern Woodsboro area."
+  },
+  {
+    name: "Ye Olde Spirit Shop",
+    address: "1005 W Seventh St, Frederick, MD 21701",
+    phone: "(301) 662-4803",
+    comments: "Long-established retailer with deep inventory."
+  }
+];

@@ -1,7 +1,11 @@
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { useStores } from '../../hooks/useStores';
-import { getApiKey, searchLiquorStores } from '../../services/googleMaps';
+import {
+  getApiKey,
+  loadPreloadedStores,
+  getPreloadedStoresCount,
+} from '../../services/googleMaps';
 import { FREDERICK_COUNTY_CENTER } from '../../types/store';
 import type { Store } from '../../types/store';
 import styles from './Map.module.css';
@@ -60,9 +64,12 @@ export function Map({ onApiError }: MapProps) {
   });
 
   const mapRef = useRef<google.maps.Map | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadProgress, setLoadProgress] = useState({ current: 0, total: 0 });
+  const hasLoadedStores = useRef(false);
 
   const {
+    stores,
     getFilteredStores,
     selectStore,
     selectedStoreId,
@@ -76,19 +83,30 @@ export function Map({ onApiError }: MapProps) {
     async (map: google.maps.Map) => {
       mapRef.current = map;
 
-      // Load stores from Google Places on first load
+      // Only load preloaded stores if we haven't already and don't have stored data
+      if (hasLoadedStores.current || stores.length > 0) {
+        return;
+      }
+
+      hasLoadedStores.current = true;
+
       try {
-        setIsSearching(true);
-        const googleStores = await searchLiquorStores(map);
-        mergeGoogleStores(googleStores);
+        setIsLoading(true);
+        setLoadProgress({ current: 0, total: getPreloadedStoresCount() });
+
+        const preloadedStores = await loadPreloadedStores((current, total) => {
+          setLoadProgress({ current, total });
+        });
+
+        mergeGoogleStores(preloadedStores);
       } catch (error) {
-        console.error('Error fetching stores:', error);
-        onApiError('Failed to load stores from Google Places. Using cached data.');
+        console.error('Error loading stores:', error);
+        onApiError('Failed to load store data. Please refresh the page.');
       } finally {
-        setIsSearching(false);
+        setIsLoading(false);
       }
     },
-    [mergeGoogleStores, onApiError]
+    [stores.length, mergeGoogleStores, onApiError]
   );
 
   const handleMarkerClick = useCallback(
@@ -157,10 +175,21 @@ export function Map({ onApiError }: MapProps) {
         })}
       </GoogleMap>
 
-      {isSearching && (
+      {isLoading && (
         <div className={styles.searchingOverlay}>
           <div className={styles.spinner} />
-          <p>Searching for liquor stores...</p>
+          <p>Loading {loadProgress.total} Frederick County liquor stores...</p>
+          <div className={styles.progressBar}>
+            <div
+              className={styles.progressFill}
+              style={{
+                width: `${(loadProgress.current / loadProgress.total) * 100}%`,
+              }}
+            />
+          </div>
+          <p className={styles.progressText}>
+            Geocoding addresses: {loadProgress.current} / {loadProgress.total}
+          </p>
         </div>
       )}
     </div>

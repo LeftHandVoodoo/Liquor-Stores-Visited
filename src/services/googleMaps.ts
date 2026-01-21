@@ -1,7 +1,11 @@
 import type { Store } from '../types/store';
 import { FREDERICK_COUNTY_CENTER } from '../types/store';
+import { preloadedStores, type PreloadedStore } from '../data/stores';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+
+// Cache for geocoded coordinates
+const GEOCODE_CACHE_KEY = 'liquor-tracker-geocode-cache';
 
 export function getApiKey(): string {
   return API_KEY;
@@ -134,4 +138,115 @@ export function getGoogleMapsRouteUrl(stores: Store[]): string {
     .join('/');
 
   return baseUrl + locations;
+}
+
+// Load geocode cache from localStorage
+function loadGeocodeCache(): Record<string, { lat: number; lng: number }> {
+  try {
+    const cached = localStorage.getItem(GEOCODE_CACHE_KEY);
+    return cached ? JSON.parse(cached) : {};
+  } catch {
+    return {};
+  }
+}
+
+// Save geocode cache to localStorage
+function saveGeocodeCache(cache: Record<string, { lat: number; lng: number }>): void {
+  try {
+    localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify(cache));
+  } catch (error) {
+    console.error('Failed to save geocode cache:', error);
+  }
+}
+
+// Geocode a single address
+export async function geocodeAddress(
+  address: string
+): Promise<{ lat: number; lng: number } | null> {
+  return new Promise((resolve) => {
+    const geocoder = new google.maps.Geocoder();
+
+    geocoder.geocode({ address }, (results, status) => {
+      if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+        const location = results[0].geometry.location;
+        resolve({ lat: location.lat(), lng: location.lng() });
+      } else {
+        console.warn(`Geocoding failed for "${address}": ${status}`);
+        resolve(null);
+      }
+    });
+  });
+}
+
+// Load preloaded stores with geocoding
+export async function loadPreloadedStores(
+  onProgress?: (current: number, total: number) => void
+): Promise<Store[]> {
+  const cache = loadGeocodeCache();
+  const stores: Store[] = [];
+  const newCache = { ...cache };
+
+  for (let i = 0; i < preloadedStores.length; i++) {
+    const preloaded = preloadedStores[i];
+
+    // Check cache first
+    let coords = cache[preloaded.address];
+
+    if (!coords) {
+      // Geocode the address
+      coords = await geocodeAddress(preloaded.address) || undefined;
+
+      if (coords) {
+        newCache[preloaded.address] = coords;
+      }
+
+      // Small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    if (coords) {
+      stores.push({
+        id: `preloaded-${i}`,
+        name: preloaded.name,
+        address: preloaded.address,
+        lat: coords.lat,
+        lng: coords.lng,
+        phone: preloaded.phone || undefined,
+        isManualEntry: false,
+        visited: false,
+        ownerName: '',
+        comments: preloaded.comments,
+        hasFortalezaBlanco: false,
+        hasFortalezaReposado: false,
+        hasFortalezaAnejo: false,
+        visits: [],
+      });
+    }
+
+    if (onProgress) {
+      onProgress(i + 1, preloadedStores.length);
+    }
+  }
+
+  // Save updated cache
+  saveGeocodeCache(newCache);
+
+  return stores;
+}
+
+// Check if preloaded stores have been geocoded
+export function hasGeocodedStores(): boolean {
+  const cache = loadGeocodeCache();
+  return Object.keys(cache).length >= preloadedStores.length * 0.9; // 90% threshold
+}
+
+// Get count of cached geocodes
+export function getGeocodeCacheCount(): number {
+  const cache = loadGeocodeCache();
+  return Object.keys(cache).length;
+}
+
+// Get total preloaded stores count
+export function getPreloadedStoresCount(): number {
+  return preloadedStores.length;
 }
