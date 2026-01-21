@@ -1,0 +1,299 @@
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: var(--panel-width);
+  height: 100vh;
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-panel);
+  transform: translateX(100%);
+  transition: transform var(--transition-normal);
+  overflow-y: auto;
+  z-index: 200;
+}
+
+.panel.open {
+  transform: translateX(0);
+}
+
+.header {
+  background: linear-gradient(135deg, var(--color-brown-dark), var(--color-brown-medium));
+  color: var(--color-text-light);
+  padding: var(--spacing-lg);
+  position: relative;
+}
+
+.closeBtn {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.storeName {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+  padding-right: 40px;
+  color: var(--color-gold);
+}
+
+.address {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: var(--spacing-xs);
+}
+
+.phone {
+  display: inline-block;
+  font-size: 14px;
+  color: var(--color-gold-light);
+  text-decoration: none;
+  margin-bottom: var(--spacing-md);
+}
+
+.phone:hover {
+  text-decoration: underline;
+}
+
+.directionsBtn {
+  display: inline-block;
+  background: var(--color-gold);
+  color: var(--color-brown-dark);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background var(--transition-fast);
+}
+
+.directionsBtn:hover {
+  background: var(--color-gold-dark);
+}
+
+.section {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.visitedToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: var(--spacing-md);
+}
+
+.visitedToggle input {
+  display: none;
+}
+
+.toggleSlider {
+  width: 48px;
+  height: 26px;
+  background: var(--color-tan);
+  border-radius: var(--radius-full);
+  position: relative;
+  transition: background var(--transition-fast);
+}
+
+.toggleSlider::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.visitedToggle input:checked + .toggleSlider {
+  background: var(--color-gold);
+}
+
+.visitedToggle input:checked + .toggleSlider::after {
+  transform: translateX(22px);
+}
+
+.field {
+  margin-bottom: var(--spacing-sm);
+}
+
+.field label {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+}
+
+.field input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  transition: border-color var(--transition-fast);
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+}
+
+.fortalezaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.fortalezaBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  transition: all var(--transition-fast);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.fortalezaBtn:hover {
+  border-color: var(--color-gold);
+}
+
+.fortalezaBtn.active {
+  background: var(--color-gold-light);
+  border-color: var(--color-gold);
+  color: var(--color-brown-dark);
+}
+
+.fortalezaIcon {
+  font-size: 20px;
+}
+
+.logVisitBtn {
+  width: 100%;
+  padding: var(--spacing-md);
+  background: var(--color-gold);
+  color: var(--color-brown-dark);
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.logVisitBtn:hover {
+  background: var(--color-gold-dark);
+}
+
+.lastVisit {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+}
+
+.lastVisit p {
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+}
+
+.lastPrices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.priceTag {
+  background: var(--color-brown-dark);
+  color: var(--color-gold);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.historyToggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm);
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+}
+
+.chevron {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.comments {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.comments:focus {
+  outline: none;
+  border-color: var(--color-gold);
+}
+
+.actions {
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.deleteBtn {
+  width: 100%;
+  padding: var(--spacing-sm);
+  background: transparent;
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  transition: all var(--transition-fast);
+}
+
+.deleteBtn:hover {
+  background: var(--color-error);
+  color: white;
+}

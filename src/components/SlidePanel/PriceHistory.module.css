@@ -1,0 +1,79 @@
+.history {
+  margin-top: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.visitCard {
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.visitHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.visitDate {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-brown-dark);
+}
+
+.latestBadge {
+  background: var(--color-gold);
+  color: var(--color-brown-dark);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+.priceList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.productName {
+  color: var(--color-text-muted);
+}
+
+.price {
+  font-weight: 500;
+  color: var(--color-text-dark);
+}
+
+.price.up {
+  color: var(--color-error);
+}
+
+.price.down {
+  color: var(--color-success);
+}
+
+.changeIndicator {
+  margin-left: 4px;
+  font-size: 10px;
+}
+
+.visitNotes {
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}

@@ -1,0 +1,143 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.modal {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header h2 {
+  font-size: 18px;
+  color: var(--color-brown-dark);
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-cream);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.closeBtn:hover {
+  background: var(--color-tan);
+}
+
+.content {
+  padding: var(--spacing-lg);
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  padding: var(--spacing-md);
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.stats p {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.stats strong {
+  display: block;
+  font-size: 20px;
+  color: var(--color-gold-dark);
+}
+
+.section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.section h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.exportBtn,
+.importBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.exportBtn:hover {
+  background: var(--color-gold-light);
+}
+
+.importBtn {
+  width: 100%;
+  background: var(--color-brown-light);
+  color: white;
+}
+
+.importBtn:hover {
+  background: var(--color-brown-medium);
+}
+
+.importBtn strong,
+.importBtn small {
+  color: white;
+}
+
+.icon {
+  font-size: 24px;
+}
+
+.exportBtn span:last-child,
+.importBtn span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.exportBtn strong,
+.importBtn strong {
+  font-size: 14px;
+  color: var(--color-text-dark);
+}
+
+.exportBtn small,
+.importBtn small {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}

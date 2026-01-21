@@ -1,0 +1,187 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.modal {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header h2 {
+  font-size: 18px;
+  color: var(--color-brown-dark);
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-cream);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.closeBtn:hover {
+  background: var(--color-tan);
+}
+
+.form {
+  padding: var(--spacing-lg);
+}
+
+.date {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.priceSection {
+  margin-bottom: var(--spacing-lg);
+}
+
+.priceSection h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-brown-dark);
+  margin-bottom: var(--spacing-xs);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.priceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.priceField label {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+  text-align: center;
+}
+
+.priceInput {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: white;
+}
+
+.priceInput span {
+  padding: var(--spacing-sm);
+  background: var(--color-cream);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.priceInput input {
+  flex: 1;
+  border: none;
+  padding: var(--spacing-sm);
+  font-size: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.priceInput input:focus {
+  outline: none;
+}
+
+.priceInput.large {
+  max-width: 150px;
+}
+
+.priceInput.large input {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.notesSection {
+  margin-bottom: var(--spacing-lg);
+}
+
+.notesSection label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-brown-dark);
+  margin-bottom: var(--spacing-sm);
+}
+
+.notesSection textarea {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  resize: vertical;
+}
+
+.notesSection textarea:focus {
+  outline: none;
+  border-color: var(--color-gold);
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.cancelBtn,
+.saveBtn {
+  flex: 1;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.cancelBtn {
+  background: var(--color-cream);
+  color: var(--color-text-muted);
+}
+
+.cancelBtn:hover {
+  background: var(--color-tan);
+}
+
+.saveBtn {
+  background: var(--color-gold);
+  color: var(--color-brown-dark);
+}
+
+.saveBtn:hover {
+  background: var(--color-gold-dark);
+}
