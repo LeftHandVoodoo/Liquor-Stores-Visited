@@ -121,3 +121,18 @@
 .saveBtn:hover {
   background: var(--color-gold-dark);
 }
+
+.saveBtn:disabled,
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: var(--color-error);
+  font-size: 13px;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: var(--radius-sm);
+}

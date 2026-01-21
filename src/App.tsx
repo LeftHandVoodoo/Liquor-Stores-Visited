@@ -7,6 +7,7 @@ import { isApiKeyConfigured } from './services/googleMaps';
 import styles from './styles/App.module.css';
 
 function AppContent() {
+  console.log('[APP] AppContent rendering');
   const [error, setError] = useState<string | null>(null);
 
   const handleApiError = useCallback((errorMessage: string) => {
@@ -17,7 +18,9 @@ function AppContent() {
     setError(null);
   }, []);
 
+  console.log('[APP] isApiKeyConfigured:', isApiKeyConfigured());
   if (!isApiKeyConfigured()) {
+    console.log('[APP] No API key - showing config screen');
     return (
       <div className={styles.app}>
         <div className={styles.loadingOverlay}>
@@ -65,6 +68,7 @@ function AppContent() {
 
       {/* Map */}
       <div className={styles.mapContainer}>
+        {console.log('[APP] About to render Map component')}
         <Map onApiError={handleApiError} />
       </div>
 

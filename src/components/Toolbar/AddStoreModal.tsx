@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useStores } from '../../hooks/useStores';
+import { geocodeAddress } from '../../services/googleMaps';
 import styles from './AddStoreModal.module.css';
 
 interface AddStoreModalProps {
@@ -7,40 +8,67 @@ interface AddStoreModalProps {
 }
 
 export function AddStoreModal({ onClose }: AddStoreModalProps) {
-  const { addStore, selectStore } = useStores();
+  const { addStore } = useStores();
 
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
   const [phone, setPhone] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
+      setError(null);
 
       if (!name.trim() || !address.trim()) {
-        alert('Name and address are required');
+        setError('Name and address are required');
         return;
       }
 
-      const newStore = {
-        name: name.trim(),
-        address: address.trim(),
-        lat: lat ? parseFloat(lat) : 39.4143, // Default to Frederick County center
-        lng: lng ? parseFloat(lng) : -77.4105,
-        phone: phone.trim() || undefined,
-        isManualEntry: true,
-        visited: false,
-        ownerName: '',
-        comments: '',
-        hasFortalezaBlanco: false,
-        hasFortalezaReposado: false,
-        hasFortalezaAnejo: false,
-      };
+      setIsLoading(true);
 
-      addStore(newStore);
-      onClose();
+      try {
+        let storeLat = lat ? parseFloat(lat) : 0;
+        let storeLng = lng ? parseFloat(lng) : 0;
+
+        // If coordinates not provided, geocode the address
+        if (!lat || !lng) {
+          const coords = await geocodeAddress(address.trim());
+          if (coords) {
+            storeLat = coords.lat;
+            storeLng = coords.lng;
+          } else {
+            setError('Could not find coordinates for this address. Please enter them manually.');
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        const newStore = {
+          name: name.trim(),
+          address: address.trim(),
+          lat: storeLat,
+          lng: storeLng,
+          phone: phone.trim() || undefined,
+          isManualEntry: true,
+          visited: false,
+          ownerName: '',
+          comments: '',
+          hasFortalezaBlanco: false,
+          hasFortalezaReposado: false,
+          hasFortalezaAnejo: false,
+        };
+
+        addStore(newStore);
+        onClose();
+      } catch (err) {
+        setError('Failed to add store. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     },
     [name, address, lat, lng, phone, addStore, onClose]
   );
@@ -115,15 +143,17 @@ export function AddStoreModal({ onClose }: AddStoreModalProps) {
           </div>
 
           <p className={styles.hint}>
-            Tip: Get coordinates from Google Maps by right-clicking on a location
+            Tip: Leave coordinates blank to auto-detect from address, or get them from Google Maps by right-clicking on a location
           </p>
 
+          {error && <p className={styles.error}>{error}</p>}
+
           <div className={styles.actions}>
-            <button type="button" className={styles.cancelBtn} onClick={onClose}>
+            <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={isLoading}>
               Cancel
             </button>
-            <button type="submit" className={styles.saveBtn}>
-              Add Store
+            <button type="submit" className={styles.saveBtn} disabled={isLoading}>
+              {isLoading ? 'Adding...' : 'Add Store'}
             </button>
           </div>
         </form>

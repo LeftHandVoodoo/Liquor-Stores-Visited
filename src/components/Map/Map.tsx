@@ -11,7 +11,7 @@ import {
   loadPreloadedStores,
   getPreloadedStoresCount,
 } from '../../services/googleMaps';
-import { FREDERICK_COUNTY_CENTER } from '../../types/store';
+import { FREDERICK_COUNTY_CENTER, HOME_ADDRESS } from '../../types/store';
 import type { Store } from '../../types/store';
 import styles from './Map.module.css';
 
@@ -75,6 +75,8 @@ interface MapProps {
 }
 
 export function Map({ onApiError }: MapProps) {
+  console.log('[MAP] === Map component render ===');
+
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: getApiKey(),
     libraries,
@@ -83,71 +85,101 @@ export function Map({ onApiError }: MapProps) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadProgress, setLoadProgress] = useState({ current: 0, total: 0 });
-  const hasLoadedStores = useRef(false);
+  const loadingStarted = useRef(false);
+  const [mapReady, setMapReady] = useState(false);
+  const [markerKey, setMarkerKey] = useState(0);
 
   const {
     stores,
     getFilteredStores,
     selectStore,
+    updateStore,
     mergeGoogleStores,
     settings,
     routeResult,
     selectedForRoute,
   } = useStores();
 
-  const filteredStores = getFilteredStores();
+  console.log('[MAP] stores from context:', stores.length);
 
-  const loadStores = useCallback(
-    async () => {
+  const filteredStores = getFilteredStores();
+  console.log('[MAP] filteredStores.length:', filteredStores.length);
+
+  // Count stores with valid coordinates
+  const storesWithCoords = stores.filter(s => s.lat && s.lng && !isNaN(s.lat) && !isNaN(s.lng));
+  console.log('[MAP] storesWithCoords.length:', storesWithCoords.length);
+  if (storesWithCoords.length > 0) {
+    console.log('[MAP] First store with coords:', storesWithCoords[0].name, storesWithCoords[0].lat, storesWithCoords[0].lng);
+  }
+
+  // Auto-load stores when map is ready and we have no valid store data
+  useEffect(() => {
+    console.log('[MAP] Loading useEffect - conditions check:');
+    console.log('[MAP]   isLoaded:', isLoaded);
+    console.log('[MAP]   isLoading:', isLoading);
+    console.log('[MAP]   loadingStarted.current:', loadingStarted.current);
+    console.log('[MAP]   storesWithCoords.length:', storesWithCoords.length);
+
+    if (!isLoaded || isLoading || loadingStarted.current) {
+      console.log('[MAP] Early return - isLoaded/isLoading/loadingStarted check failed');
+      return;
+    }
+    if (storesWithCoords.length > 0) {
+      console.log('[MAP] Early return - already have', storesWithCoords.length, 'stores with coords');
+      return; // Already have data
+    }
+
+    console.log('[MAP] *** WILL LOAD STORES - no valid coords found ***');
+    loadingStarted.current = true;
+
+    const loadStoresAsync = async () => {
       try {
         setIsLoading(true);
         setLoadProgress({ current: 0, total: getPreloadedStoresCount() });
-        console.log('Starting to load', getPreloadedStoresCount(), 'stores...');
+        console.log('[MAP] Starting to load', getPreloadedStoresCount(), 'preloaded stores');
 
         const preloadedStores = await loadPreloadedStores((current, total) => {
           setLoadProgress({ current, total });
-          if (current % 10 === 0) {
-            console.log(`Geocoding progress: ${current}/${total}`);
-          }
         });
 
-        console.log('Loaded', preloadedStores.length, 'stores with coordinates');
+        console.log('[MAP] Loaded', preloadedStores.length, 'stores, calling mergeGoogleStores');
         mergeGoogleStores(preloadedStores);
       } catch (error) {
-        console.error('Error loading stores:', error);
+        console.error('[MAP] Error loading stores:', error);
         onApiError('Failed to load store data. Please refresh the page.');
       } finally {
         setIsLoading(false);
       }
-    },
-    [mergeGoogleStores, onApiError]
-  );
+    };
 
-  const onMapLoad = useCallback(
-    async (map: google.maps.Map) => {
-      mapRef.current = map;
+    loadStoresAsync();
+  }, [isLoaded, isLoading, storesWithCoords.length, mergeGoogleStores, onApiError]);
 
-      // Check if we have stores with valid coordinates
-      const storesWithCoords = stores.filter(s => s.lat && s.lng && !isNaN(s.lat) && !isNaN(s.lng));
-      console.log('Map loaded. Stores:', stores.length, 'With coords:', storesWithCoords.length);
-
-      // Only load if we haven't already AND don't have valid store data
-      if (hasLoadedStores.current || storesWithCoords.length > 0) {
-        console.log('Skipping store load - already have data');
-        return;
-      }
-
-      hasLoadedStores.current = true;
-      await loadStores();
-    },
-    [stores, loadStores]
-  );
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    console.log('[MAP] onMapLoad called - map is ready');
+    mapRef.current = map;
+    setMapReady(true);
+    // Force marker re-render by updating key
+    setMarkerKey(k => k + 1);
+  }, []);
 
   const handleMarkerClick = useCallback(
     (storeId: string) => {
       selectStore(storeId);
     },
     [selectStore]
+  );
+
+  const handleMarkerDrag = useCallback(
+    (storeId: string, e: google.maps.MapMouseEvent) => {
+      if (e.latLng) {
+        const newLat = e.latLng.lat();
+        const newLng = e.latLng.lng();
+        console.log('[MAP] Marker dragged:', storeId, 'to', newLat, newLng);
+        updateStore(storeId, { lat: newLat, lng: newLng });
+      }
+    },
+    [updateStore]
   );
 
   useEffect(() => {
@@ -157,9 +189,6 @@ export function Map({ onApiError }: MapProps) {
       );
     }
   }, [loadError, onApiError]);
-
-  // DEBUG: Show store count
-  console.log('Map render - isLoaded:', isLoaded, 'stores:', stores.length, 'filtered:', filteredStores.length);
 
   if (!isLoaded) {
     return (
@@ -190,12 +219,14 @@ export function Map({ onApiError }: MapProps) {
         onLoad={onMapLoad}
       >
         {(() => {
+          console.log('[MAP] Rendering markers - mapReady:', mapReady, 'filteredStores:', filteredStores.length);
+          if (!mapReady) {
+            console.log('[MAP] Map not ready, skipping markers');
+            return null;
+          }
           const validStores = filteredStores.filter((store) => store.lat && store.lng && !isNaN(store.lat) && !isNaN(store.lng));
-          console.log('Rendering markers for', validStores.length, 'stores. First store:', validStores[0]);
-          return validStores;
-        })()
-          .map((store) => {
-            // Safely check for good deal on Don Julio 1942
+          console.log('[MAP] Valid stores to render:', validStores.length);
+          return validStores.map((store) => {
             let hasGoodDeal = false;
             if (store.visits && Array.isArray(store.visits) && store.visits.length > 0) {
               const lastVisit = store.visits[store.visits.length - 1];
@@ -203,17 +234,46 @@ export function Map({ onApiError }: MapProps) {
                 hasGoodDeal = lastVisit.donJulio1942Price <= settings.priceAlertThreshold;
               }
             }
-
+            const pinColor = getPinColor(store);
+            const icon: google.maps.Symbol = {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: pinColor,
+              fillOpacity: 1,
+              strokeColor: hasGoodDeal ? '#ffd700' : '#0d47a1',
+              strokeWeight: hasGoodDeal ? 3 : 2,
+              scale: hasGoodDeal ? 12 : 10,
+            };
             return (
               <Marker
-                key={store.id}
+                key={`${markerKey}-${store.id}`}
                 position={{ lat: store.lat, lng: store.lng }}
-                icon={createPinIcon(getPinColor(store), hasGoodDeal)}
                 onClick={() => handleMarkerClick(store.id)}
+                onDragEnd={(e) => handleMarkerDrag(store.id, e)}
                 title={store.name}
+                icon={icon}
+                draggable={true}
               />
             );
-          })}
+          });
+        })()}
+
+        {/* Home marker - always visible */}
+        {mapReady && (
+          <Marker
+            key="home-marker"
+            position={{ lat: HOME_ADDRESS.lat, lng: HOME_ADDRESS.lng }}
+            title="Home - Route Start"
+            icon={{
+              path: 'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+              fillColor: '#4caf50',
+              fillOpacity: 1,
+              strokeColor: '#2e7d32',
+              strokeWeight: 2,
+              scale: 1.5,
+              anchor: new google.maps.Point(12, 22),
+            }}
+          />
+        )}
 
         {routeResult && selectedForRoute.length > 0 && (
           <DirectionsRenderer
@@ -258,33 +318,6 @@ export function Map({ onApiError }: MapProps) {
         </div>
       )}
 
-      {!isLoading && filteredStores.filter(s => s.lat && s.lng).length === 0 && (
-        <button
-          onClick={() => {
-            console.log('Manual load triggered');
-            localStorage.removeItem('liquor-tracker-data');
-            localStorage.removeItem('geocode-cache');
-            hasLoadedStores.current = false;
-            loadStores();
-          }}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            padding: '16px 32px',
-            fontSize: '18px',
-            background: '#5d4037',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            zIndex: 100,
-          }}
-        >
-          Load 75 Liquor Stores
-        </button>
-      )}
     </div>
   );
 }

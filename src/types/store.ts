@@ -60,6 +60,13 @@ export const FREDERICK_COUNTY_CENTER = {
   lng: -77.4105,
 };
 
+// Home address - starting point for all routes
+export const HOME_ADDRESS = {
+  address: '2113 Independence St, Frederick, MD 21702',
+  lat: 39.4398,
+  lng: -77.4434,
+};
+
 export const FREDERICK_COUNTY_BOUNDS = {
   north: 39.72,
   south: 39.21,

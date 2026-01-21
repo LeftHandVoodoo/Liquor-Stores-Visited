@@ -65,13 +65,64 @@ const defaultSettings: AppSettings = {
   lastPlacesRefresh: '',
 };
 
+function loadFromStorage(): { stores: Store[]; settings: AppSettings } {
+  console.log('[STORAGE] loadFromStorage() called');
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    console.log('[STORAGE] Raw localStorage data exists:', !!data);
+    console.log('[STORAGE] Raw data length:', data ? data.length : 0);
+
+    if (data) {
+      const parsed: StorageData = JSON.parse(data);
+      console.log('[STORAGE] Parsed version:', parsed.version, 'Expected:', STORAGE_VERSION);
+      console.log('[STORAGE] Parsed stores count:', parsed.stores?.length || 0);
+      console.log('[STORAGE] Parsed lastUpdated:', parsed.lastUpdated);
+
+      if (parsed.version === STORAGE_VERSION) {
+        const storesWithCoords = parsed.stores.filter(s => s.lat && s.lng);
+        console.log('[STORAGE] Stores with valid coords:', storesWithCoords.length);
+        if (storesWithCoords.length > 0) {
+          const first = storesWithCoords[0];
+          console.log('[STORAGE] First store:', first.name, 'lat:', first.lat, 'lng:', first.lng);
+        }
+        console.log('[STORAGE] Returning', parsed.stores.length, 'stores from localStorage');
+        return { stores: parsed.stores, settings: parsed.settings };
+      } else {
+        console.log('[STORAGE] Version mismatch - returning empty');
+      }
+    } else {
+      console.log('[STORAGE] No data in localStorage - returning empty');
+    }
+  } catch (error) {
+    console.error('[STORAGE] Error loading from storage:', error);
+  }
+  return { stores: [], settings: defaultSettings };
+}
+
+// Load from localStorage synchronously to avoid race conditions
+console.log('[STORAGE] === INITIAL LOAD START ===');
+const savedData = loadFromStorage();
+console.log('[STORAGE] === INITIAL LOAD COMPLETE ===');
+console.log('[STORAGE] savedData.stores.length:', savedData.stores.length);
+const savedWithCoords = savedData.stores.filter(s => s.lat && s.lng && !isNaN(s.lat) && !isNaN(s.lng));
+console.log('[STORAGE] savedData stores with valid coords:', savedWithCoords.length);
+
+// Store the loaded data for use after mount
+const loadedStores = savedData.stores;
+const loadedSettings = savedData.settings;
+
+// Export function for Map component to get preloaded stores
+export function getPreloadedStoresFromStorage(): Store[] {
+  return loadedStores;
+}
+
 const initialState: StoreState = {
-  stores: [],
-  settings: defaultSettings,
+  stores: [],  // Start empty - will be populated after mount
+  settings: loadedSettings,
   selectedStoreId: null,
   filters: defaultFilters,
   sortBy: 'name',
-  isLoading: true,
+  isLoading: loadedStores.length > 0,  // Show loading if we have stores to load
   error: null,
   selectedForRoute: [],
   routeResult: null,
@@ -200,22 +251,16 @@ interface StoreContextValue extends StoreState {
 
 const StoreContext = createContext<StoreContextValue | null>(null);
 
-function loadFromStorage(): { stores: Store[]; settings: AppSettings } {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      const parsed: StorageData = JSON.parse(data);
-      if (parsed.version === STORAGE_VERSION) {
-        return { stores: parsed.stores, settings: parsed.settings };
-      }
-    }
-  } catch (error) {
-    console.error('Error loading from storage:', error);
-  }
-  return { stores: [], settings: defaultSettings };
-}
-
 function saveToStorage(stores: Store[], settings: AppSettings): void {
+  console.log('[SAVE] saveToStorage() called');
+  console.log('[SAVE] Saving', stores.length, 'stores');
+  const storesWithCoords = stores.filter(s => s.lat && s.lng && !isNaN(s.lat) && !isNaN(s.lng));
+  console.log('[SAVE] Stores with valid coords:', storesWithCoords.length);
+  if (storesWithCoords.length > 0) {
+    const first = storesWithCoords[0];
+    console.log('[SAVE] First store:', first.name, 'lat:', first.lat, 'lng:', first.lng);
+  }
+
   try {
     const data: StorageData = {
       version: STORAGE_VERSION,
@@ -223,29 +268,47 @@ function saveToStorage(stores: Store[], settings: AppSettings): void {
       stores,
       settings,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const jsonString = JSON.stringify(data);
+    console.log('[SAVE] JSON string length:', jsonString.length);
+    localStorage.setItem(STORAGE_KEY, jsonString);
+    console.log('[SAVE] Successfully saved to localStorage');
   } catch (error) {
-    console.error('Error saving to storage:', error);
+    console.error('[SAVE] Error saving to storage:', error);
   }
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(storeReducer, initialState);
 
-  // Load data on mount
+  // Populate stores AFTER mount - this is critical for markers to render
+  // Markers added via state update after GoogleMap mounts will render correctly
   useEffect(() => {
-    const { stores, settings } = loadFromStorage();
-    dispatch({ type: 'SET_STORES', payload: stores });
-    dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
-  }, []);
+    console.log('[PROVIDER] Mount useEffect - loadedStores.length:', loadedStores.length);
+    if (loadedStores.length > 0) {
+      console.log('[PROVIDER] Dispatching SET_STORES with', loadedStores.length, 'stores');
+      // Small delay to ensure GoogleMap has fully initialized
+      const timer = setTimeout(() => {
+        dispatch({ type: 'SET_STORES', payload: loadedStores });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, []); // Empty deps - only run once on mount
 
   // Save data on changes (debounced by reducer batching)
   useEffect(() => {
+    console.log('[SAVE] Save useEffect triggered - isLoading:', state.isLoading, 'stores:', state.stores.length);
     if (!state.isLoading) {
+      console.log('[SAVE] Setting 500ms timer to save');
       const timer = setTimeout(() => {
+        console.log('[SAVE] Timer fired - calling saveToStorage');
         saveToStorage(state.stores, state.settings);
       }, 500);
-      return () => clearTimeout(timer);
+      return () => {
+        console.log('[SAVE] Cleanup - clearing timer');
+        clearTimeout(timer);
+      };
+    } else {
+      console.log('[SAVE] Skipping save - isLoading is true');
     }
   }, [state.stores, state.settings, state.isLoading]);
 

@@ -190,11 +190,14 @@ export async function loadPreloadedStores(
     const preloaded = preloadedStores[i];
 
     // Check cache first
-    let coords = cache[preloaded.address];
+    let coords: { lat: number; lng: number } | undefined = cache[preloaded.address];
 
     if (!coords) {
       // Geocode the address
-      coords = await geocodeAddress(preloaded.address) || undefined;
+      const geocoded = await geocodeAddress(preloaded.address);
+      if (geocoded) {
+        coords = geocoded;
+      }
 
       if (coords) {
         newCache[preloaded.address] = coords;

@@ -1,7 +1,26 @@
 import { useState, useCallback } from 'react';
 import { useStores } from '../../hooks/useStores';
 import { calculateRoute } from '../../services/googleMaps';
+import { HOME_ADDRESS } from '../../types/store';
+import type { Store } from '../../types/store';
 import styles from './RoutePanel.module.css';
+
+// Create a "home" store object for route planning
+const homeStore: Store = {
+  id: 'home',
+  name: 'Home',
+  address: HOME_ADDRESS.address,
+  lat: HOME_ADDRESS.lat,
+  lng: HOME_ADDRESS.lng,
+  isManualEntry: false,
+  visited: false,
+  ownerName: '',
+  comments: '',
+  hasFortalezaBlanco: false,
+  hasFortalezaReposado: false,
+  hasFortalezaAnejo: false,
+  visits: [],
+};
 
 interface RoutePanelProps {
   onClose: () => void;
@@ -23,8 +42,8 @@ export function RoutePanel({ onClose, onClear }: RoutePanelProps) {
   const routeStores = getRouteStores();
 
   const handleCalculateRoute = useCallback(async () => {
-    if (routeStores.length < 2) {
-      setError('Add at least 2 stores to plan a route');
+    if (routeStores.length < 1) {
+      setError('Add at least 1 store to plan a route');
       return;
     }
 
@@ -32,7 +51,9 @@ export function RoutePanel({ onClose, onClear }: RoutePanelProps) {
     setError(null);
 
     try {
-      const result = await calculateRoute(routeStores);
+      // Always start from home
+      const routeWithHome = [homeStore, ...routeStores];
+      const result = await calculateRoute(routeWithHome);
       setRouteResult(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to calculate route');
@@ -78,6 +99,7 @@ export function RoutePanel({ onClose, onClear }: RoutePanelProps) {
             <p>No stores selected for route.</p>
             <p className={styles.hint}>
               Click "Add to Route" when viewing a store to build your route.
+              Routes always start from Home.
             </p>
           </div>
         ) : (
@@ -120,7 +142,7 @@ export function RoutePanel({ onClose, onClear }: RoutePanelProps) {
               <button
                 className={styles.planBtn}
                 onClick={handleCalculateRoute}
-                disabled={isCalculating || routeStores.length < 2}
+                disabled={isCalculating || routeStores.length < 1}
               >
                 {isCalculating ? 'Calculating...' : 'Plan Route'}
               </button>
