@@ -26,9 +26,9 @@
   --color-warning: var(--color-gold-dark);
 
   /* Pin Colors */
-  --pin-not-visited: var(--color-brown-medium);
-  --pin-visited-fortaleza: var(--color-gold);
-  --pin-visited-no-fortaleza: var(--color-tan);
+  --pin-not-visited: #1976d2;
+  --pin-visited-fortaleza: #4caf50;
+  --pin-visited-no-fortaleza: #90caf9;
   --pin-deal: var(--color-gold);
 
   /* Spacing */

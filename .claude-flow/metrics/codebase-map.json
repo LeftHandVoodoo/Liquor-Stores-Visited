@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-01-21T16:10:30.077Z",
+  "timestamp": "2026-01-21T16:26:34.783Z",
   "projectRoot": "/mnt/c/liquor stores",
   "structure": {
     "hasPackageJson": true,
@@ -7,5 +7,5 @@
     "hasClaudeConfig": true,
     "hasClaudeFlow": true
   },
-  "scannedAt": 1769011830078
+  "scannedAt": 1769012794784
 }

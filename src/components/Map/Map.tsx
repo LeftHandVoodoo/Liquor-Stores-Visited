@@ -51,12 +51,12 @@ function getMapOptions(): google.maps.MapOptions {
 
 function getPinColor(store: Store): string {
   if (!store.visited) {
-    return '#5d4037'; // Brown - not visited
+    return '#1976d2'; // Blue - not visited
   }
   if (store.hasFortalezaBlanco || store.hasFortalezaReposado || store.hasFortalezaAnejo) {
-    return '#ffd700'; // Gold - has Fortaleza
+    return '#4caf50'; // Green - has Fortaleza
   }
-  return '#d7ccc8'; // Tan - visited, no Fortaleza
+  return '#90caf9'; // Light blue - visited, no Fortaleza
 }
 
 function createPinIcon(color: string, hasSpecialDeal: boolean): google.maps.Symbol {
@@ -64,7 +64,7 @@ function createPinIcon(color: string, hasSpecialDeal: boolean): google.maps.Symb
     path: google.maps.SymbolPath.CIRCLE,
     fillColor: color,
     fillOpacity: 1,
-    strokeColor: hasSpecialDeal ? '#ffd700' : '#3e2723',
+    strokeColor: hasSpecialDeal ? '#ffd700' : '#0d47a1',
     strokeWeight: hasSpecialDeal ? 3 : 2,
     scale: hasSpecialDeal ? 12 : 10,
   };
@@ -97,25 +97,21 @@ export function Map({ onApiError }: MapProps) {
 
   const filteredStores = getFilteredStores();
 
-  const onMapLoad = useCallback(
-    async (map: google.maps.Map) => {
-      mapRef.current = map;
-
-      // Only load preloaded stores if we haven't already and don't have stored data
-      if (hasLoadedStores.current || stores.length > 0) {
-        return;
-      }
-
-      hasLoadedStores.current = true;
-
+  const loadStores = useCallback(
+    async () => {
       try {
         setIsLoading(true);
         setLoadProgress({ current: 0, total: getPreloadedStoresCount() });
+        console.log('Starting to load', getPreloadedStoresCount(), 'stores...');
 
         const preloadedStores = await loadPreloadedStores((current, total) => {
           setLoadProgress({ current, total });
+          if (current % 10 === 0) {
+            console.log(`Geocoding progress: ${current}/${total}`);
+          }
         });
 
+        console.log('Loaded', preloadedStores.length, 'stores with coordinates');
         mergeGoogleStores(preloadedStores);
       } catch (error) {
         console.error('Error loading stores:', error);
@@ -124,7 +120,27 @@ export function Map({ onApiError }: MapProps) {
         setIsLoading(false);
       }
     },
-    [stores.length, mergeGoogleStores, onApiError]
+    [mergeGoogleStores, onApiError]
+  );
+
+  const onMapLoad = useCallback(
+    async (map: google.maps.Map) => {
+      mapRef.current = map;
+
+      // Check if we have stores with valid coordinates
+      const storesWithCoords = stores.filter(s => s.lat && s.lng && !isNaN(s.lat) && !isNaN(s.lng));
+      console.log('Map loaded. Stores:', stores.length, 'With coords:', storesWithCoords.length);
+
+      // Only load if we haven't already AND don't have valid store data
+      if (hasLoadedStores.current || storesWithCoords.length > 0) {
+        console.log('Skipping store load - already have data');
+        return;
+      }
+
+      hasLoadedStores.current = true;
+      await loadStores();
+    },
+    [stores, loadStores]
   );
 
   const handleMarkerClick = useCallback(
@@ -141,6 +157,9 @@ export function Map({ onApiError }: MapProps) {
       );
     }
   }, [loadError, onApiError]);
+
+  // DEBUG: Show store count
+  console.log('Map render - isLoaded:', isLoaded, 'stores:', stores.length, 'filtered:', filteredStores.length);
 
   if (!isLoaded) {
     return (
@@ -170,8 +189,11 @@ export function Map({ onApiError }: MapProps) {
         options={getMapOptions()}
         onLoad={onMapLoad}
       >
-        {filteredStores
-          .filter((store) => store.lat && store.lng && !isNaN(store.lat) && !isNaN(store.lng))
+        {(() => {
+          const validStores = filteredStores.filter((store) => store.lat && store.lng && !isNaN(store.lat) && !isNaN(store.lng));
+          console.log('Rendering markers for', validStores.length, 'stores. First store:', validStores[0]);
+          return validStores;
+        })()
           .map((store) => {
             // Safely check for good deal on Don Julio 1942
             let hasGoodDeal = false;
@@ -234,6 +256,34 @@ export function Map({ onApiError }: MapProps) {
             Geocoding addresses: {loadProgress.current} / {loadProgress.total}
           </p>
         </div>
+      )}
+
+      {!isLoading && filteredStores.filter(s => s.lat && s.lng).length === 0 && (
+        <button
+          onClick={() => {
+            console.log('Manual load triggered');
+            localStorage.removeItem('liquor-tracker-data');
+            localStorage.removeItem('geocode-cache');
+            hasLoadedStores.current = false;
+            loadStores();
+          }}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            padding: '16px 32px',
+            fontSize: '18px',
+            background: '#5d4037',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            zIndex: 100,
+          }}
+        >
+          Load 75 Liquor Stores
+        </button>
       )}
     </div>
   );
