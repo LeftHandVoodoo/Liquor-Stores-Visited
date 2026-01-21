@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+.nuxt/
+.output/
+
+# Test coverage
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Flow (keep config, ignore runtime)
+.swarm/
+!.swarm/.gitkeep
+.claude-flow/logs/
+.claude-flow/sessions/
+.claude-flow/data/*.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp

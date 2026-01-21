@@ -20,7 +20,16 @@ const mapContainerStyle = {
 const mapOptions: google.maps.MapOptions = {
   disableDefaultUI: false,
   zoomControl: true,
-  mapTypeControl: false,
+  mapTypeControl: true,
+  mapTypeControlOptions: {
+    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+    position: google.maps.ControlPosition.TOP_RIGHT,
+    mapTypeIds: [
+      google.maps.MapTypeId.ROADMAP,
+      google.maps.MapTypeId.SATELLITE,
+      google.maps.MapTypeId.HYBRID,
+    ],
+  },
   streetViewControl: false,
   fullscreenControl: true,
   styles: [
@@ -152,27 +161,28 @@ export function Map({ onApiError }: MapProps) {
         options={mapOptions}
         onLoad={onMapLoad}
       >
-        {filteredStores.map((store) => {
-          const lastVisit = store.visits[store.visits.length - 1];
-          const hasGoodDeal =
-            lastVisit?.donJulio1942Price !== null &&
-            lastVisit.donJulio1942Price <= settings.priceAlertThreshold;
-
-          return (
-            <Marker
-              key={store.id}
-              position={{ lat: store.lat, lng: store.lng }}
-              icon={createPinIcon(getPinColor(store), hasGoodDeal)}
-              onClick={() => handleMarkerClick(store.id)}
-              animation={
-                store.id === selectedStoreId
-                  ? google.maps.Animation.BOUNCE
-                  : undefined
+        {filteredStores
+          .filter((store) => store.lat && store.lng && !isNaN(store.lat) && !isNaN(store.lng))
+          .map((store) => {
+            // Safely check for good deal on Don Julio 1942
+            let hasGoodDeal = false;
+            if (store.visits && Array.isArray(store.visits) && store.visits.length > 0) {
+              const lastVisit = store.visits[store.visits.length - 1];
+              if (lastVisit && typeof lastVisit.donJulio1942Price === 'number') {
+                hasGoodDeal = lastVisit.donJulio1942Price <= settings.priceAlertThreshold;
               }
-              title={store.name}
-            />
-          );
-        })}
+            }
+
+            return (
+              <Marker
+                key={store.id}
+                position={{ lat: store.lat, lng: store.lng }}
+                icon={createPinIcon(getPinColor(store), hasGoodDeal)}
+                onClick={() => handleMarkerClick(store.id)}
+                title={store.name}
+              />
+            );
+          })}
       </GoogleMap>
 
       {isLoading && (

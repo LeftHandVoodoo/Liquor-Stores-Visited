@@ -51,7 +51,7 @@ export function SlidePanel() {
   );
 
   const handleDelete = useCallback(() => {
-    if (selectedStore && confirm('Delete this store from your list?')) {
+    if (selectedStore && confirm(`Remove "${selectedStore.name}" from your list? This will delete all visit history for this store.`)) {
       deleteStore(selectedStore.id);
     }
   }, [selectedStore, deleteStore]);
@@ -189,11 +189,9 @@ export function SlidePanel() {
 
       {/* Actions */}
       <div className={styles.actions}>
-        {selectedStore.isManualEntry && (
-          <button className={styles.deleteBtn} onClick={handleDelete}>
-            Delete Store
-          </button>
-        )}
+        <button className={styles.deleteBtn} onClick={handleDelete}>
+          Remove Store
+        </button>
       </div>
 
       {/* Visit Form Modal */}
