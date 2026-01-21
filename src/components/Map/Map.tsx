@@ -1,5 +1,10 @@
 import { useCallback, useState, useRef, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import {
+  GoogleMap,
+  useJsApiLoader,
+  Marker,
+  DirectionsRenderer,
+} from '@react-google-maps/api';
 import { useStores } from '../../hooks/useStores';
 import {
   getApiKey,
@@ -81,9 +86,10 @@ export function Map({ onApiError }: MapProps) {
     stores,
     getFilteredStores,
     selectStore,
-    selectedStoreId,
     mergeGoogleStores,
     settings,
+    routeResult,
+    selectedForRoute,
   } = useStores();
 
   const filteredStores = getFilteredStores();
@@ -183,6 +189,30 @@ export function Map({ onApiError }: MapProps) {
               />
             );
           })}
+
+        {routeResult && selectedForRoute.length > 0 && (
+          <DirectionsRenderer
+            directions={routeResult}
+            options={{
+              suppressMarkers: false,
+              polylineOptions: {
+                strokeColor: '#5d4037',
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+              },
+              markerOptions: {
+                icon: {
+                  path: google.maps.SymbolPath.CIRCLE,
+                  fillColor: '#ffd700',
+                  fillOpacity: 1,
+                  strokeColor: '#3e2723',
+                  strokeWeight: 2,
+                  scale: 8,
+                },
+              },
+            }}
+          />
+        )}
       </GoogleMap>
 
       {isLoading && (

@@ -4,13 +4,22 @@ import type { SortOption } from '../../types/store';
 import { AddStoreModal } from './AddStoreModal';
 import { FilterDropdown } from './FilterDropdown';
 import { ExportModal } from './ExportModal';
+import { RoutePanel } from './RoutePanel';
 import styles from './Toolbar.module.css';
 
 export function Toolbar() {
-  const { sortBy, setSortBy, stores, getFilteredStores } = useStores();
+  const {
+    sortBy,
+    setSortBy,
+    stores,
+    getFilteredStores,
+    selectedForRoute,
+    clearRoute,
+  } = useStores();
   const [showAddStore, setShowAddStore] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [showRoute, setShowRoute] = useState(false);
 
   const handleSortChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -21,6 +30,11 @@ export function Toolbar() {
 
   const filteredCount = getFilteredStores().length;
   const totalCount = stores.length;
+
+  const handleClearRoute = useCallback(() => {
+    clearRoute();
+    setShowRoute(false);
+  }, [clearRoute]);
 
   return (
     <>
@@ -56,6 +70,15 @@ export function Toolbar() {
           <option value="cheapest1942">Sort: Cheapest 1942</option>
         </select>
 
+        {selectedForRoute.length > 0 && (
+          <button
+            className={`${styles.routeBtn} ${showRoute ? styles.active : ''}`}
+            onClick={() => setShowRoute(!showRoute)}
+          >
+            Route ({selectedForRoute.length})
+          </button>
+        )}
+
         <button
           className={styles.exportBtn}
           onClick={() => setShowExport(true)}
@@ -67,6 +90,13 @@ export function Toolbar() {
 
       {showFilters && (
         <FilterDropdown onClose={() => setShowFilters(false)} />
+      )}
+
+      {showRoute && (
+        <RoutePanel
+          onClose={() => setShowRoute(false)}
+          onClear={handleClearRoute}
+        />
       )}
 
       {showAddStore && (

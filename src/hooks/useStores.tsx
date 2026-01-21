@@ -27,6 +27,8 @@ interface StoreState {
   sortBy: SortOption;
   isLoading: boolean;
   error: string | null;
+  selectedForRoute: string[];
+  routeResult: google.maps.DirectionsResult | null;
 }
 
 type StoreAction =
@@ -41,7 +43,11 @@ type StoreAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'UPDATE_SETTINGS'; payload: Partial<AppSettings> }
-  | { type: 'MERGE_GOOGLE_STORES'; payload: Store[] };
+  | { type: 'MERGE_GOOGLE_STORES'; payload: Store[] }
+  | { type: 'ADD_TO_ROUTE'; payload: string }
+  | { type: 'REMOVE_FROM_ROUTE'; payload: string }
+  | { type: 'CLEAR_ROUTE'; payload: void }
+  | { type: 'SET_ROUTE_RESULT'; payload: google.maps.DirectionsResult | null };
 
 const defaultFilters: FilterOptions = {
   showVisited: true,
@@ -67,6 +73,8 @@ const initialState: StoreState = {
   sortBy: 'name',
   isLoading: true,
   error: null,
+  selectedForRoute: [],
+  routeResult: null,
 };
 
 function storeReducer(state: StoreState, action: StoreAction): StoreState {
@@ -134,6 +142,36 @@ function storeReducer(state: StoreState, action: StoreAction): StoreState {
       const newStores = action.payload.filter((s) => !existingIds.has(s.id));
       return { ...state, stores: [...state.stores, ...newStores] };
 
+    case 'ADD_TO_ROUTE':
+      if (state.selectedForRoute.includes(action.payload)) {
+        return state;
+      }
+      return {
+        ...state,
+        selectedForRoute: [...state.selectedForRoute, action.payload],
+      };
+
+    case 'REMOVE_FROM_ROUTE':
+      return {
+        ...state,
+        selectedForRoute: state.selectedForRoute.filter(
+          (id) => id !== action.payload
+        ),
+      };
+
+    case 'CLEAR_ROUTE':
+      return {
+        ...state,
+        selectedForRoute: [],
+        routeResult: null,
+      };
+
+    case 'SET_ROUTE_RESULT':
+      return {
+        ...state,
+        routeResult: action.payload,
+      };
+
     default:
       return state;
   }
@@ -153,6 +191,11 @@ interface StoreContextValue extends StoreState {
   selectedStore: Store | null;
   exportData: () => string;
   exportCSV: () => string;
+  addToRoute: (storeId: string) => void;
+  removeFromRoute: (storeId: string) => void;
+  clearRoute: () => void;
+  setRouteResult: (result: google.maps.DirectionsResult | null) => void;
+  getRouteStores: () => Store[];
 }
 
 const StoreContext = createContext<StoreContextValue | null>(null);
@@ -375,6 +418,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return [headers.join(','), ...rows].join('\n');
   }, [state.stores]);
 
+  const addToRoute = useCallback((storeId: string) => {
+    dispatch({ type: 'ADD_TO_ROUTE', payload: storeId });
+  }, []);
+
+  const removeFromRoute = useCallback((storeId: string) => {
+    dispatch({ type: 'REMOVE_FROM_ROUTE', payload: storeId });
+  }, []);
+
+  const clearRoute = useCallback(() => {
+    dispatch({ type: 'CLEAR_ROUTE', payload: undefined });
+  }, []);
+
+  const setRouteResult = useCallback(
+    (result: google.maps.DirectionsResult | null) => {
+      dispatch({ type: 'SET_ROUTE_RESULT', payload: result });
+    },
+    []
+  );
+
+  const getRouteStores = useCallback(() => {
+    return state.selectedForRoute
+      .map((id) => state.stores.find((s) => s.id === id))
+      .filter((s): s is Store => s !== undefined);
+  }, [state.selectedForRoute, state.stores]);
+
   const value: StoreContextValue = {
     ...state,
     selectStore,
@@ -390,6 +458,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     selectedStore,
     exportData,
     exportCSV,
+    addToRoute,
+    removeFromRoute,
+    clearRoute,
+    setRouteResult,
+    getRouteStores,
   };
 
   return (

@@ -211,10 +211,34 @@
   font-size: 16px;
   border-radius: var(--radius-md);
   transition: background var(--transition-fast);
+  margin-bottom: var(--spacing-sm);
 }
 
 .logVisitBtn:hover {
   background: var(--color-gold-dark);
+}
+
+.routeBtn {
+  width: 100%;
+  padding: var(--spacing-md);
+  background: var(--color-bg-card);
+  border: 2px solid var(--color-brown-medium);
+  color: var(--color-brown-dark);
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.routeBtn:hover {
+  background: var(--color-cream);
+  border-color: var(--color-brown-dark);
+}
+
+.routeBtn.inRoute {
+  background: var(--color-brown-dark);
+  border-color: var(--color-brown-dark);
+  color: var(--color-gold);
 }
 
 .lastVisit {

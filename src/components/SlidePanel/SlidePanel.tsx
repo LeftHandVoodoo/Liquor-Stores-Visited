@@ -6,7 +6,15 @@ import { PriceHistory } from './PriceHistory';
 import styles from './SlidePanel.module.css';
 
 export function SlidePanel() {
-  const { selectedStore, selectStore, updateStore, deleteStore } = useStores();
+  const {
+    selectedStore,
+    selectStore,
+    updateStore,
+    deleteStore,
+    selectedForRoute,
+    addToRoute,
+    removeFromRoute,
+  } = useStores();
   const [showVisitForm, setShowVisitForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -56,11 +64,22 @@ export function SlidePanel() {
     }
   }, [selectedStore, deleteStore]);
 
+  const handleToggleRoute = useCallback(() => {
+    if (!selectedStore) return;
+
+    if (selectedForRoute.includes(selectedStore.id)) {
+      removeFromRoute(selectedStore.id);
+    } else {
+      addToRoute(selectedStore.id);
+    }
+  }, [selectedStore, selectedForRoute, addToRoute, removeFromRoute]);
+
   if (!selectedStore) {
     return null;
   }
 
   const lastVisit = selectedStore.visits[selectedStore.visits.length - 1];
+  const isInRoute = selectedForRoute.includes(selectedStore.id);
 
   return (
     <div className={`${styles.panel} ${selectedStore ? styles.open : ''}`}>
@@ -138,6 +157,14 @@ export function SlidePanel() {
           onClick={() => setShowVisitForm(true)}
         >
           Log Visit
+        </button>
+
+        <button
+          className={`${styles.routeBtn} ${isInRoute ? styles.inRoute : ''}`}
+          onClick={handleToggleRoute}
+          title={isInRoute ? 'Remove from route' : 'Add to route'}
+        >
+          {isInRoute ? '✓ In Route' : '+ Add to Route'}
         </button>
 
         {lastVisit && (
