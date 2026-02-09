@@ -23,11 +23,19 @@ const mapContainerStyle = {
 };
 
 // Map options must be created after API loads (google.maps not available at module level)
-function getMapOptions(): google.maps.MapOptions {
+function getMapOptions(mapType: MapType): google.maps.MapOptions {
+  // Convert string map type to Google Maps MapTypeId
+  const mapTypeIdMap: Record<MapType, google.maps.MapTypeId> = {
+    roadmap: google.maps.MapTypeId.ROADMAP,
+    satellite: google.maps.MapTypeId.SATELLITE,
+    hybrid: google.maps.MapTypeId.HYBRID,
+  };
+
   return {
     disableDefaultUI: false,
     zoomControl: true,
     mapTypeControl: true,
+    mapTypeId: mapTypeIdMap[mapType],
     mapTypeControlOptions: {
       style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
       position: google.maps.ControlPosition.TOP_RIGHT,
@@ -54,9 +62,9 @@ function getPinColor(store: Store): string {
     return '#1976d2'; // Blue - not visited
   }
   if (store.hasFortalezaBlanco || store.hasFortalezaReposado || store.hasFortalezaAnejo) {
-    return '#4caf50'; // Green - has Fortaleza
+    return '#4caf50'; // Green - Fortaleza spotted here
   }
-  return '#90caf9'; // Light blue - visited, no Fortaleza
+  return '#90caf9'; // Light blue - visited, no Fortaleza spotted
 }
 
 function createPinIcon(color: string, hasSpecialDeal: boolean): google.maps.Symbol {
@@ -70,11 +78,14 @@ function createPinIcon(color: string, hasSpecialDeal: boolean): google.maps.Symb
   };
 }
 
+type MapType = 'roadmap' | 'satellite' | 'hybrid';
+
 interface MapProps {
   onApiError: (error: string) => void;
+  mapType?: MapType;
 }
 
-export function Map({ onApiError }: MapProps) {
+export function Map({ onApiError, mapType = 'roadmap' }: MapProps) {
   console.log('[MAP] === Map component render ===');
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -163,6 +174,18 @@ export function Map({ onApiError }: MapProps) {
     setMarkerKey(k => k + 1);
   }, []);
 
+  // Update map type when prop changes
+  useEffect(() => {
+    if (mapRef.current && mapReady && window.google?.maps) {
+      const mapTypeIdMap: Record<MapType, google.maps.MapTypeId> = {
+        roadmap: google.maps.MapTypeId.ROADMAP,
+        satellite: google.maps.MapTypeId.SATELLITE,
+        hybrid: google.maps.MapTypeId.HYBRID,
+      };
+      mapRef.current.setMapTypeId(mapTypeIdMap[mapType]);
+    }
+  }, [mapType, mapReady]);
+
   const handleMarkerClick = useCallback(
     (storeId: string) => {
       selectStore(storeId);
@@ -215,7 +238,7 @@ export function Map({ onApiError }: MapProps) {
         mapContainerStyle={mapContainerStyle}
         center={FREDERICK_COUNTY_CENTER}
         zoom={11}
-        options={getMapOptions()}
+        options={getMapOptions(mapType)}
         onLoad={onMapLoad}
       >
         {(() => {
@@ -264,13 +287,18 @@ export function Map({ onApiError }: MapProps) {
             position={{ lat: HOME_ADDRESS.lat, lng: HOME_ADDRESS.lng }}
             title="Home - Route Start"
             icon={{
-              path: 'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+              path: google.maps.SymbolPath.CIRCLE,
               fillColor: '#4caf50',
               fillOpacity: 1,
-              strokeColor: '#2e7d32',
-              strokeWeight: 2,
-              scale: 1.5,
-              anchor: new google.maps.Point(12, 22),
+              strokeColor: '#ffffff',
+              strokeWeight: 3,
+              scale: 14,
+            }}
+            label={{
+              text: 'H',
+              color: '#ffffff',
+              fontWeight: 'bold',
+              fontSize: '12px',
             }}
           />
         )}

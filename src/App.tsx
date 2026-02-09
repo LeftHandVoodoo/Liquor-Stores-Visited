@@ -1,14 +1,28 @@
 import { useState, useCallback } from 'react';
-import { StoreProvider } from './hooks/useStores';
+import { StoreProvider, useStores } from './hooks/useStores';
 import { Map } from './components/Map';
 import { SlidePanel } from './components/SlidePanel';
 import { Toolbar } from './components/Toolbar';
+import { FileSetup } from './components/FileSetup';
 import { isApiKeyConfigured } from './services/googleMaps';
+import { isFileSystemSupported } from './services/fileStorage';
 import styles from './styles/App.module.css';
+
+type MapType = 'roadmap' | 'satellite' | 'hybrid';
 
 function AppContent() {
   console.log('[APP] AppContent rendering');
   const [error, setError] = useState<string | null>(null);
+  const [showFirefoxBanner, setShowFirefoxBanner] = useState(!isFileSystemSupported());
+  const [mapType, setMapType] = useState<MapType>('roadmap');
+
+  const {
+    saveStatus,
+    saveFileName,
+    needsFileSetup,
+    loadDataFromFile,
+    setFileSetupComplete,
+  } = useStores();
 
   const handleApiError = useCallback((errorMessage: string) => {
     setError(errorMessage);
@@ -16,6 +30,10 @@ function AppContent() {
 
   const dismissError = useCallback(() => {
     setError(null);
+  }, []);
+
+  const dismissFirefoxBanner = useCallback(() => {
+    setShowFirefoxBanner(false);
   }, []);
 
   console.log('[APP] isApiKeyConfigured:', isApiKeyConfigured());
@@ -49,8 +67,32 @@ function AppContent() {
     );
   }
 
+  // Show file setup modal if needed
+  if (needsFileSetup && isFileSystemSupported()) {
+    return (
+      <FileSetup
+        mode="initial"
+        onComplete={loadDataFromFile}
+        onSkip={setFileSetupComplete}
+      />
+    );
+  }
+
   return (
     <div className={styles.app}>
+      {/* Firefox/Unsupported Browser Banner */}
+      {showFirefoxBanner && (
+        <div className={styles.firefoxBanner}>
+          <span>
+            Your browser doesn't support auto-save to file. Use the Export button
+            regularly to back up your data.
+          </span>
+          <button className={styles.bannerDismiss} onClick={dismissFirefoxBanner}>
+            Got it
+          </button>
+        </div>
+      )}
+
       {/* Error Banner */}
       {error && (
         <div className={styles.errorBanner}>
@@ -61,31 +103,52 @@ function AppContent() {
         </div>
       )}
 
+      {/* Save Status Indicator */}
+      {isFileSystemSupported() && (
+        <div className={styles.saveStatus}>
+          {saveStatus === 'saving' && (
+            <span className={styles.savingIndicator}>Saving...</span>
+          )}
+          {saveStatus === 'saved' && (
+            <span className={styles.savedIndicator}>Saved</span>
+          )}
+          {saveStatus === 'error' && (
+            <span className={styles.errorIndicator}>Save failed</span>
+          )}
+          {saveFileName && saveStatus === 'idle' && (
+            <span className={styles.fileNameIndicator}>{saveFileName}</span>
+          )}
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className={styles.toolbar}>
-        <Toolbar />
+        <Toolbar mapType={mapType} onMapTypeChange={setMapType} />
       </div>
 
       {/* Map */}
       <div className={styles.mapContainer}>
-        {console.log('[APP] About to render Map component')}
-        <Map onApiError={handleApiError} />
+        <Map onApiError={handleApiError} mapType={mapType} />
       </div>
 
       {/* Legend */}
       <div className={styles.legend}>
         <div className={styles.legendTitle}>Map Legend</div>
         <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.brown}`}></span>
+          <span className={`${styles.legendDot} ${styles.home}`}></span>
+          <span>Home (Route Start)</span>
+        </div>
+        <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.blue}`}></span>
           <span>Not Visited</span>
         </div>
         <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.gold}`}></span>
-          <span>Visited - Has Fortaleza</span>
+          <span className={`${styles.legendDot} ${styles.green}`}></span>
+          <span>Fortaleza Spotted</span>
         </div>
         <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.tan}`}></span>
-          <span>Visited - No Fortaleza</span>
+          <span className={`${styles.legendDot} ${styles.lightBlue}`}></span>
+          <span>Visited</span>
         </div>
       </div>
 

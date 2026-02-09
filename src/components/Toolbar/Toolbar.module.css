@@ -99,3 +99,26 @@
 .exportBtn:hover {
   background: var(--color-cream);
 }
+
+.mapTypeBtn {
+  background: var(--color-bg-card);
+  color: var(--color-text-dark);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.mapTypeBtn:hover {
+  background: var(--color-cream);
+}
+
+.mapTypeBtn.active {
+  background: var(--color-gold);
+  color: var(--color-brown-dark);
+}

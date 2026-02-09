@@ -4,6 +4,7 @@ import {
   useReducer,
   useCallback,
   useEffect,
+  useState,
   ReactNode,
 } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,9 +16,19 @@ import type {
   SortOption,
   AppSettings,
 } from '../types/store';
+import {
+  isFileSystemSupported,
+  hasFileAccess,
+  saveToFile,
+  loadFromFile,
+  getCurrentFileName,
+} from '../services/fileStorage';
+import { loadDataFromApi, saveDataToApi, checkApiHealth } from '../services/api';
 
 const STORAGE_KEY = 'liquor-tracker-data';
 const STORAGE_VERSION = 1;
+
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 interface StoreState {
   stores: Store[];
@@ -247,6 +258,12 @@ interface StoreContextValue extends StoreState {
   clearRoute: () => void;
   setRouteResult: (result: google.maps.DirectionsResult | null) => void;
   getRouteStores: () => Store[];
+  // File persistence
+  saveStatus: SaveStatus;
+  saveFileName: string | null;
+  needsFileSetup: boolean;
+  loadDataFromFile: (data: StorageData | null) => void;
+  setFileSetupComplete: () => void;
 }
 
 const StoreContext = createContext<StoreContextValue | null>(null);
@@ -279,38 +296,176 @@ function saveToStorage(stores: Store[], settings: AppSettings): void {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(storeReducer, initialState);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [saveFileName, setSaveFileName] = useState<string | null>(null);
+  const [needsFileSetup, setNeedsFileSetup] = useState(false);
+  const [fileSetupChecked, setFileSetupChecked] = useState(false);
+  const [hasFileAccessState, setHasFileAccessState] = useState(false);
 
-  // Populate stores AFTER mount - this is critical for markers to render
-  // Markers added via state update after GoogleMap mounts will render correctly
+  // Load data from API on mount
   useEffect(() => {
-    console.log('[PROVIDER] Mount useEffect - loadedStores.length:', loadedStores.length);
-    if (loadedStores.length > 0) {
-      console.log('[PROVIDER] Dispatching SET_STORES with', loadedStores.length, 'stores');
-      // Small delay to ensure GoogleMap has fully initialized
-      const timer = setTimeout(() => {
-        dispatch({ type: 'SET_STORES', payload: loadedStores });
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, []); // Empty deps - only run once on mount
+    const loadData = async () => {
+      console.log('[API] Checking API health...');
+      const apiAvailable = await checkApiHealth();
+      
+      if (apiAvailable) {
+        console.log('[API] API is available, loading from database');
+        const apiData = await loadDataFromApi();
+        
+        if (apiData && apiData.stores && apiData.stores.length > 0) {
+          console.log('[API] Loaded', apiData.stores.length, 'stores from database');
+          dispatch({ type: 'SET_STORES', payload: apiData.stores });
+          if (apiData.settings) {
+            dispatch({ type: 'UPDATE_SETTINGS', payload: apiData.settings });
+          }
+          setFileSetupChecked(true);
+          return;
+        } else if (loadedStores.length > 0) {
+          // API returned empty but localStorage has data - migrate to API
+          console.log('[API] API empty, migrating localStorage data to database');
+          const migrationData: StorageData = {
+            version: STORAGE_VERSION,
+            lastUpdated: new Date().toISOString(),
+            stores: loadedStores,
+            settings: loadedSettings,
+          };
+          await saveDataToApi(migrationData);
+          dispatch({ type: 'SET_STORES', payload: loadedStores });
+          setFileSetupChecked(true);
+          return;
+        }
+      } else {
+        console.log('[API] API not available, falling back to localStorage/file');
+      }
 
-  // Save data on changes (debounced by reducer batching)
+      // Fallback to file/localStorage if API unavailable
+      if (!isFileSystemSupported()) {
+        console.log('[FILE] File System API not supported');
+        if (loadedStores.length > 0) {
+          dispatch({ type: 'SET_STORES', payload: loadedStores });
+        }
+        setFileSetupChecked(true);
+        return;
+      }
+
+      const hasAccess = await hasFileAccess();
+      console.log('[FILE] Has file access:', hasAccess);
+      setHasFileAccessState(hasAccess);
+
+      if (hasAccess) {
+        // Try to load from file
+        const fileData = await loadFromFile();
+        const fileName = await getCurrentFileName();
+        setSaveFileName(fileName);
+
+        if (fileData && fileData.stores && fileData.stores.length > 0) {
+          console.log('[FILE] Loaded', fileData.stores.length, 'stores from file');
+          dispatch({ type: 'SET_STORES', payload: fileData.stores });
+          if (fileData.settings) {
+            dispatch({ type: 'UPDATE_SETTINGS', payload: fileData.settings });
+          }
+        } else if (loadedStores.length > 0) {
+          // File is empty but localStorage has data - use localStorage
+          console.log('[FILE] File empty, using localStorage data');
+          dispatch({ type: 'SET_STORES', payload: loadedStores });
+        }
+        setNeedsFileSetup(false);
+      } else {
+        // No file access - check if we should prompt for setup
+        setNeedsFileSetup(true);
+        // Still load from localStorage for now
+        if (loadedStores.length > 0) {
+          dispatch({ type: 'SET_STORES', payload: loadedStores });
+        }
+      }
+      setFileSetupChecked(true);
+    };
+
+    loadData();
+  }, []);
+
+  // Function to load data from file (called after FileSetup completes)
+  const loadDataFromFile = useCallback((data: StorageData | null) => {
+    if (data && data.stores) {
+      console.log('[FILE] Loading data from file setup:', data.stores.length, 'stores');
+      dispatch({ type: 'SET_STORES', payload: data.stores });
+      if (data.settings) {
+        dispatch({ type: 'UPDATE_SETTINGS', payload: data.settings });
+      }
+    }
+    setNeedsFileSetup(false);
+    setHasFileAccessState(true);
+    getCurrentFileName().then(setSaveFileName);
+  }, []);
+
+  // Function to mark file setup as complete
+  const setFileSetupComplete = useCallback(() => {
+    setNeedsFileSetup(false);
+    setHasFileAccessState(true);
+    getCurrentFileName().then(setSaveFileName);
+  }, []);
+
+  // Save data on changes (debounced)
   useEffect(() => {
     console.log('[SAVE] Save useEffect triggered - isLoading:', state.isLoading, 'stores:', state.stores.length);
-    if (!state.isLoading) {
+    if (!state.isLoading && fileSetupChecked) {
       console.log('[SAVE] Setting 500ms timer to save');
-      const timer = setTimeout(() => {
-        console.log('[SAVE] Timer fired - calling saveToStorage');
+      const timer = setTimeout(async () => {
+        console.log('[SAVE] Timer fired - saving data');
+        setSaveStatus('saving');
+
+        const data: StorageData = {
+          version: STORAGE_VERSION,
+          lastUpdated: new Date().toISOString(),
+          stores: state.stores,
+          settings: state.settings,
+        };
+
+        // Try to save to API first (database)
+        const apiAvailable = await checkApiHealth();
+        if (apiAvailable) {
+          try {
+            const saved = await saveDataToApi(data);
+            if (saved) {
+              console.log('[SAVE] Saved to database successfully');
+              setSaveStatus('saved');
+              setTimeout(() => setSaveStatus('idle'), 2000);
+              // Also save to localStorage as backup
+              saveToStorage(state.stores, state.settings);
+              return;
+            }
+          } catch (err) {
+            console.error('[SAVE] Error saving to API:', err);
+          }
+        }
+
+        // Fallback: save to localStorage and file
         saveToStorage(state.stores, state.settings);
+
+        // Save to file if we have access
+        if (hasFileAccessState) {
+          try {
+            await saveToFile(data);
+            console.log('[SAVE] Saved to file successfully');
+            setSaveStatus('saved');
+            setTimeout(() => setSaveStatus('idle'), 2000);
+          } catch (err) {
+            console.error('[SAVE] Error saving to file:', err);
+            setSaveStatus('error');
+          }
+        } else {
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus('idle'), 2000);
+        }
       }, 500);
       return () => {
         console.log('[SAVE] Cleanup - clearing timer');
         clearTimeout(timer);
       };
     } else {
-      console.log('[SAVE] Skipping save - isLoading is true');
+      console.log('[SAVE] Skipping save - isLoading:', state.isLoading, 'fileSetupChecked:', fileSetupChecked);
     }
-  }, [state.stores, state.settings, state.isLoading]);
+  }, [state.stores, state.settings, state.isLoading, fileSetupChecked, hasFileAccessState]);
 
   const selectStore = useCallback((id: string | null) => {
     dispatch({ type: 'SELECT_STORE', payload: id });
@@ -444,12 +599,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       'Address',
       'Visited',
       'Owner',
-      'Fortaleza Blanco',
-      'Fortaleza Reposado',
-      'Fortaleza Anejo',
+      'Blanco Spotted',
+      'Reposado Spotted',
+      'Añejo Spotted',
       'Last Blanco Price',
       'Last Reposado Price',
-      'Last Anejo Price',
+      'Last Añejo Price',
       'Last 1942 Price',
       'Last Visit',
       'Total Visits',
@@ -526,6 +681,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     clearRoute,
     setRouteResult,
     getRouteStores,
+    // File persistence
+    saveStatus,
+    saveFileName,
+    needsFileSetup,
+    loadDataFromFile,
+    setFileSetupComplete,
   };
 
   return (

@@ -43,3 +43,12 @@ Thumbs.db
 tmp/
 temp/
 *.tmp
+
+# Database
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Server
+server/node_modules

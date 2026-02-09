@@ -8,12 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Map view toggle button in toolbar to switch between Roadmap and Satellite views
+- Backend API server with Express.js for persistent data storage
+- JSON file-based database (`data/liquor-stores.json`) for reliable persistence across sessions
+- API endpoints: `/api/stores`, `/api/settings`, `/api/data`, `/api/health`
+- Automatic data migration from localStorage to database on first API connection
+- Production mode now starts both backend server and frontend
 
 ### Changed
+- Data persistence now uses backend API with database instead of localStorage-only
+- Frontend automatically saves to database when API is available, falls back to localStorage/file
+- Production build process includes backend server startup
 
 ### Fixed
+- Data now persists reliably across browser sessions using database backend
 
 ### Removed
+
+## [0.3.1] - 2026-02-09
+
+### Added
+- `run.py` launcher to start the app in dev mode or production preview.
+
+### Fixed
+- `run.py` now resolves the npm executable path explicitly on Windows.
 
 ## [0.2.0] - 2026-01-21
 

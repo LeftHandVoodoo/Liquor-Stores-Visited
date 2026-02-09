@@ -7,7 +7,14 @@ import { ExportModal } from './ExportModal';
 import { RoutePanel } from './RoutePanel';
 import styles from './Toolbar.module.css';
 
-export function Toolbar() {
+type MapType = 'roadmap' | 'satellite' | 'hybrid';
+
+interface ToolbarProps {
+  mapType: MapType;
+  onMapTypeChange: (mapType: MapType) => void;
+}
+
+export function Toolbar({ mapType, onMapTypeChange }: ToolbarProps) {
   const {
     sortBy,
     setSortBy,
@@ -35,6 +42,11 @@ export function Toolbar() {
     clearRoute();
     setShowRoute(false);
   }, [clearRoute]);
+
+  const handleMapTypeToggle = useCallback(() => {
+    const newMapType: MapType = mapType === 'roadmap' ? 'satellite' : 'roadmap';
+    onMapTypeChange(newMapType);
+  }, [mapType, onMapTypeChange]);
 
   return (
     <>
@@ -85,6 +97,14 @@ export function Toolbar() {
           title="Export Data"
         >
           Export
+        </button>
+
+        <button
+          className={`${styles.mapTypeBtn} ${mapType === 'satellite' ? styles.active : ''}`}
+          onClick={handleMapTypeToggle}
+          title={mapType === 'roadmap' ? 'Switch to Satellite View' : 'Switch to Roadmap View'}
+        >
+          {mapType === 'roadmap' ? '🗺️ Map' : '🛰️ Satellite'}
         </button>
       </div>
 
